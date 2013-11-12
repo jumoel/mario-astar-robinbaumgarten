@@ -6,24 +6,38 @@ package competition.cig.robinbaumgarten;
  * To Public License, Version 2, as published by Sam Hocevar. See
  * http://sam.zoy.org/wtfpl/COPYING for more details. */ 
 
-import ch.idsia.ai.agents.Agent;
-import ch.idsia.mario.environments.Environment;
+import ch.idsia.agents.Agent;
+import ch.idsia.benchmark.mario.environments.Environment;
 
 import competition.cig.robinbaumgarten.astar.AStarSimulator;
 import competition.cig.robinbaumgarten.astar.sprites.Mario;
 
 public class AStarAgent implements Agent
 {
-    protected boolean action[] = new boolean[Environment.numberOfButtons];
+    public AStarAgent() {
+		reset();
+	}
+
+	protected boolean action[] = new boolean[Environment.numberOfKeys];
     protected String name = "AStarAgent";
     private AStarSimulator sim;
     private float lastX = 0;
     private float lastY = 0;
     
+    private Environment environment;
+    
     public void reset()
     {
-        action = new boolean[Environment.numberOfButtons];
+        action = new boolean[Environment.numberOfKeys];
         sim = new AStarSimulator();
+    }
+    
+    public void integrateObservation(Environment environment) {
+    	this.environment = environment; 
+    }
+    
+    public boolean[] getAction() {
+    	return getAction(environment);
     }
 
     public boolean[] getAction(Environment observation)
@@ -42,7 +56,7 @@ public class AStarAgent implements Agent
     		s = "Small";
     	if (sim.levelScene.verbose > 0) System.out.println("Next action! Simulated Mariosize: " + s);
 
-    	boolean[] ac = new boolean[5];
+    	boolean[] ac = new boolean[Environment.numberOfKeys];
     	ac[Mario.KEY_RIGHT] = true;
     	ac[Mario.KEY_SPEED] = true;
     	
@@ -79,7 +93,7 @@ public class AStarAgent implements Agent
 		}
 		
 		// Update the internal world to the new information received
-		sim.setLevelPart(scene, enemies);
+		sim.setLevelPart(scene, enemies, realMarioPos);
         
 		lastX = realMarioPos[0];
 		lastY = realMarioPos[1];
@@ -93,18 +107,26 @@ public class AStarAgent implements Agent
         return action;
     }
 
-    public AGENT_TYPE getType()
-    {
-        return Agent.AGENT_TYPE.AI;
-    }
+	@Override
+	public void giveIntermediateReward(float intermediateReward) {
+		// TODO Auto-generated method stub
+		
+	}
 
-    public String getName() 
-    {        
-    	return name;    
-    }
+	@Override
+	public void setObservationDetails(int rfWidth, int rfHeight, int egoRow,
+			int egoCol) {
+		// TODO Auto-generated method stub
+		
+	}
 
-    public void setName(String Name) 
-    { 
-    	this.name = Name;    
-    }
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public void setName(String name) {
+		this.name = name;
+	}
 }

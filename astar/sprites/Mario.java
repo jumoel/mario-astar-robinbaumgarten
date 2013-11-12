@@ -1,6 +1,7 @@
 package competition.cig.robinbaumgarten.astar.sprites;
 
-import ch.idsia.mario.engine.GlobalOptions;
+import ch.idsia.benchmark.mario.engine.GlobalOptions;
+import ch.idsia.benchmark.mario.environments.Environment;
 
 import competition.cig.robinbaumgarten.astar.LevelScene;
 import competition.cig.robinbaumgarten.astar.level.Level;
@@ -34,8 +35,8 @@ public class Mario extends Sprite implements Cloneable
 	public Object clone() throws CloneNotSupportedException
     {
     	Mario m = (Mario) super.clone();
-    	boolean[] k = new boolean[5];
-    	for (int i = 0; i < 5; i++)
+    	boolean[] k = new boolean[Environment.numberOfKeys];
+    	for (int i = 0; i < k.length; i++)
     		k[i] = keys[i];
     	m.keys = k;
     	return m;    	
@@ -45,6 +46,14 @@ public class Mario extends Sprite implements Cloneable
     {
         large = (mode == MODE.MODE_LARGE);
         fire = (mode == MODE.MODE_FIRE);
+    }
+    
+    public void setRacoon(boolean is_racoon) {
+    	if (is_racoon) {
+    		setMode(MODE.MODE_FIRE);
+    	} else {
+    		setMode(MODE.MODE_LARGE);
+    	}
     }
 
 
@@ -62,10 +71,10 @@ public class Mario extends Sprite implements Cloneable
     public static final int KEY_JUMP = 3;
     public static final int KEY_SPEED = 4;
     public static final int KEY_UP = 5;
-    public static final int KEY_PAUSE = 6;
-    public static final int KEY_DUMP_CURRENT_WORLD = 7;
-    public static final int KEY_LIFE_UP = 8;
-    public static final int KEY_WIN = 9;
+    //public static final int KEY_PAUSE = 6;
+    //public static final int KEY_DUMP_CURRENT_WORLD = 7;
+    //public static final int KEY_LIFE_UP = 8;
+    //public static final int KEY_WIN = 9;
 
     public static final int STATUS_RUNNING = 2;
     public static final int STATUS_WIN = 1;
@@ -75,7 +84,7 @@ public class Mario extends Sprite implements Cloneable
     private static float GROUND_INERTIA = 0.89f;
     private static float AIR_INERTIA = 0.89f;
 
-    public boolean[] keys = new boolean[5];
+    public boolean[] keys = new boolean[Environment.numberOfKeys];
     //public boolean[] cheatKeys;
     private float runTime;
     boolean wasOnGround = false;
@@ -129,7 +138,7 @@ public class Mario extends Sprite implements Cloneable
 
     public void setKeys(boolean[] k)
     {
-    	for (int i = 0; i < 5; i++)
+    	for (int i = 0; i < k.length; i++)
     		keys[i] = k[i];
     }
     
@@ -277,7 +286,8 @@ public class Mario extends Sprite implements Cloneable
             world.addSprite(new Fireball(world, x+facing*6, y-20, facing));
         }
 
-        world.paused = GlobalOptions.pauseWorld;
+        //world.paused = GlobalOptions.pauseWorld;
+        world.paused = GlobalOptions.isGameplayStopped;
         canShoot = !keys[KEY_SPEED];
 
         mayJump = (onGround || sliding) && !keys[KEY_JUMP];
@@ -315,9 +325,9 @@ public class Mario extends Sprite implements Cloneable
             win();
         }
 
-        if (x > world.level.width * 16)
+        if (x > world.level.length * 16)
         {
-            x = world.level.width * 16;
+            x = world.level.length * 16;
             xa = 0;
         }
 
@@ -629,7 +639,7 @@ public class Mario extends Sprite implements Cloneable
         invulnerableTime = 1;
         world.enemiesJumpedOn++;
     }
-
+/*
     public byte getKeyMask()
     {
         int mask = 0;
@@ -639,15 +649,15 @@ public class Mario extends Sprite implements Cloneable
         }
         return (byte) mask;
     }
-
-    public void setKeys(byte mask)
+*/
+    /*public void setKeys(byte mask)
     {
         for (int i = 0; i < 7; i++)
         {
             keys[i] = (mask & (1 << i)) > 0;
         }
     }
-
+*/
     public static void get1Up()
     {
         lives++;

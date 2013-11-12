@@ -8,7 +8,8 @@ package competition.cig.robinbaumgarten.astar;
 
 import java.util.ArrayList;
 
-import ch.idsia.mario.engine.sprites.Mario;
+import ch.idsia.benchmark.mario.engine.sprites.Mario;
+import ch.idsia.benchmark.mario.environments.Environment;
 
 import competition.cig.robinbaumgarten.astar.level.Level;
 
@@ -198,7 +199,7 @@ public class AStarSimulator
     
     private boolean[] createAction(boolean left, boolean right, boolean down, boolean jump, boolean speed)
     {
-    	boolean[] action = new boolean[5];
+    	boolean[] action = new boolean[Environment.numberOfKeys];
     	action[Mario.KEY_DOWN] = down;
     	action[Mario.KEY_JUMP] = jump;
     	action[Mario.KEY_LEFT] = left;
@@ -436,15 +437,17 @@ public class AStarSimulator
 	public void initialiseSimulator()
 	{
 		levelScene = new LevelScene();
-		levelScene.init();	
+		levelScene.init();
 		// increase max level length here if you want to run longer levels
 		levelScene.level = new Level(1500,15);
 	}
 	
-	public void setLevelPart(byte[][] levelPart, float[] enemies)
+	public void setLevelPart(byte[][] levelPart, float[] enemies, float[] marioPos)
 	{
     	levelScene.setLevelScene(levelPart);
     	levelScene.setEnemies(enemies);
+    	levelScene.mario.x = marioPos[0];
+    	levelScene.mario.y = marioPos[1];
 	}
 	
 	// make a clone of the current world state (copying marios state, all enemies, and some level information)
@@ -523,7 +526,7 @@ public class AStarSimulator
     	workScene = backupState();
         
     	// select the next action from our plan
-		boolean[] action = new boolean[5];
+		boolean[] action = new boolean[Environment.numberOfKeys];
         if (currentActionPlan.size() > 0)
         	action = currentActionPlan.remove(0);
         

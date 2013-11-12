@@ -3,6 +3,8 @@ package competition.cig.robinbaumgarten.astar;
 import java.util.ArrayList;
 import java.util.List;
 
+import ch.idsia.benchmark.mario.engine.GlobalOptions;
+
 import competition.cig.robinbaumgarten.astar.level.Level;
 import competition.cig.robinbaumgarten.astar.level.SpriteTemplate;
 import competition.cig.robinbaumgarten.astar.sprites.BulletBill;
@@ -25,12 +27,14 @@ public class LevelScene implements SpriteContext, Cloneable
     private List<Sprite> sprites = new ArrayList<Sprite>();
     private List<Sprite> spritesToAdd = new ArrayList<Sprite>();
     private List<Sprite> spritesToRemove = new ArrayList<Sprite>();
+    
+    private static int cellSize = ch.idsia.benchmark.mario.engine.LevelScene.cellSize;
 
     public Level level;
     public Mario mario;
     
     public float xCam, yCam, xCamO, yCamO; // left-over from rendering, can probably be removed.
-    public int tick;
+    public int tickCount;
     
     public int verbose = 0; // set to > 0 for debugging output
 
@@ -84,14 +88,14 @@ public class LevelScene implements SpriteContext, Cloneable
     // includes some gap detection code
     public boolean setLevelScene(byte[][] data)
     {
-        int HalfObsWidth = 11;
-        int HalfObsHeight = 11;
+    	int HalfObsWidth = GlobalOptions.receptiveFieldWidth / 2;
+        int HalfObsHeight = GlobalOptions.receptiveFieldHeight / 2;
         int MarioXInMap = (int)mario.x/16;
         int MarioYInMap = (int)mario.y/16;
         boolean gapAtLast = true;
         boolean gapAtSecondLast = true;
         int lastEventX = 0;
-        int[] heights = new int[22];
+        int[] heights = new int[20];
         for(int i = 0; i < heights.length; i++)
         	heights[i] = 0;
         
@@ -99,62 +103,76 @@ public class LevelScene implements SpriteContext, Cloneable
         int gapBorderMinusOneHeight = 0;
         int gapBorderMinusTwoHeight = 0;
         
-        for (int y = MarioYInMap - HalfObsHeight, obsX = 0; y < MarioYInMap + HalfObsHeight; y++, obsX++)
+        for (int y = MarioYInMap - HalfObsHeight, obsY = 0; y < MarioYInMap + HalfObsHeight; y++, obsY++)
         {
-            for (int x = MarioXInMap - HalfObsWidth, obsY = 0; x < MarioXInMap + HalfObsWidth; x++, obsY++)
+            for (int x = MarioXInMap - HalfObsWidth, obsX = 0; x < MarioXInMap + HalfObsWidth; x++, obsX++)
             {
-                if (x >=0 && x <= level.xExit && y >= 0 && y < level.height)
-                {
-                	byte datum = data[obsX][obsY];
-                	
-                 	if (datum != 0 && datum != -10 && datum != 1 && obsY > lastEventX)
-                	{
-                 		lastEventX = obsY;
-                	}
-                 	if (datum != 0 && datum != 1)
-                	{
-                		if (heights[obsY] == 0)
-                		{
-                			heights[obsY] = y;
-                		}
-                	}
-                 	
-                	// cannon detection: if there's a one-block long hill, it's a cannon!
-                 	// i think this is not required anymore, because we get the cannon data straight from the API.
-                	if (x == MarioXInMap + HalfObsWidth - 3 &&
-                			datum != 0 && y > 5)
-                	{
+            	try {
+            		if (x < 0 || x > level.xExit || y < 0 || y > level.height) {
+            			continue;
+            		}
 
-                		if (gapBorderMinusTwoHeight == 0)
-                			gapBorderMinusTwoHeight = y;
-                	}
-                	if (x == MarioXInMap + HalfObsWidth - 2 &&
-                			datum != 0 && y > 5)
-                	{
-                		if (gapBorderMinusOneHeight == 0)
-                			gapBorderMinusOneHeight = y;
-                		gapAtSecondLast = false;
-                	}
-                	if (x == MarioXInMap + HalfObsWidth - 1 &&
-                			datum != 0 && y > 5)
-                	{
+            		byte datum = data[obsX][obsY];
 
-                		if (gapBorderHeight == 0)
-                			gapBorderHeight = y;
-                		gapAtLast = false;
-                	}
-                	
-                    if (datum != 1 && level.getBlock(x, y) != 14) 
-                    	level.setBlock(x, y, datum);
-                }
+            		if (datum != 0 && datum != -10 && datum != 1 && obsX > lastEventX)
+            		{
+            			lastEventX = obsX;
+            		}
+            		if (datum != 0 && datum != 1)
+            		{
+            			if (heights[obsX] == 0)
+            			{
+            				heights[obsX] = y;
+            			}
+            		}
+
+            		// cannon detection: if there's a one-block long hill, it's a cannon!
+            		// i think this is not required anymore, because we get the cannon data straight from the API.
+            		if (x == MarioXInMap + HalfObsWidth - 3 &&
+            				datum != 0 && y > 5)
+            		{
+
+            			if (gapBorderMinusTwoHeight == 0)
+            				gapBorderMinusTwoHeight = y;
+            		}
+
+            		if (x == MarioXInMap + HalfObsWidth - 2 &&
+            				datum != 0 && y > 5)
+            		{
+            			if (gapBorderMinusOneHeight == 0)
+            				gapBorderMinusOneHeight = y;
+            			gapAtSecondLast = false;
+            		}
+
+            		if (x == MarioXInMap + HalfObsWidth - 1 &&
+            				datum != 0 && y > 5)
+            		{
+
+            			if (gapBorderHeight == 0)
+            				gapBorderHeight = y;
+            			gapAtLast = false;
+            		}
+
+            		if (datum != 1 && level.getBlock(x, y) != 14) 
+            			level.setBlock(x, y, datum);
+            	}
+            	catch (ArrayIndexOutOfBoundsException e) {
+            		System.out.println("ObsX: " + obsX);
+            		System.out.println("ObsY: " + obsY);
+            		System.out.println("Data: " + data.length + "x" + data[0].length);
+            		
+            		throw e;
+            	}
             }
         }
+        
         if (gapBorderHeight == gapBorderMinusTwoHeight && gapBorderMinusOneHeight < gapBorderHeight)
         {
         	// found a cannon!
         	//System.out.println("Got a cannon!");
         	level.setBlock(MarioXInMap + HalfObsWidth - 2,gapBorderMinusOneHeight, (byte)14);
         }
+        
         if (gapAtLast && !gapAtSecondLast)
         {
         	// found a gap. 
@@ -194,7 +212,8 @@ public class LevelScene implements SpriteContext, Cloneable
 
         timeLeft = totalTime*15;
 
-        tick = 1;
+        // TODO: Should this be 0 instead?
+        tickCount = 1;
     }
 
     public int fireballsOnScreen = 0;
@@ -215,6 +234,163 @@ public class LevelScene implements SpriteContext, Cloneable
 
     public void tick()
     {
+    	if (GlobalOptions.isGameplayStopped)
+			return;
+
+		timeLeft--;
+		if (timeLeft == 0)
+			mario.die();
+		xCamO = xCam;
+		yCamO = yCam;
+
+		if (startTime > 0)
+		{
+			startTime++;
+		}
+
+		float targetXCam = mario.x - 160;
+
+		xCam = targetXCam;
+
+		if (xCam < 0) xCam = 0;
+		if (xCam > level.length * cellSize - GlobalOptions.VISUAL_COMPONENT_WIDTH)
+			xCam = level.length * cellSize - GlobalOptions.VISUAL_COMPONENT_WIDTH;
+
+		fireballsOnScreen = 0;
+
+		for (Sprite sprite : sprites)
+		{
+			if (sprite != mario)
+			{
+				float xd = sprite.x - xCam;
+				float yd = sprite.y - yCam;
+				if (xd < -64 || xd > GlobalOptions.VISUAL_COMPONENT_WIDTH + 64 || yd < -64 || yd > GlobalOptions.VISUAL_COMPONENT_HEIGHT + 64)
+				{
+					removeSprite(sprite);
+				} else
+				{
+					if (sprite instanceof Fireball)
+						fireballsOnScreen++;
+				}
+			}
+		}
+
+		tickCount++;
+		level.tick();
+
+		//            boolean hasShotCannon = false;
+		//            int xCannon = 0;
+
+		for (int x = (int) xCam / cellSize - 1; x <= (int) (xCam + level.length) / cellSize + 1; x++)
+			for (int y = (int) yCam / cellSize - 1; y <= (int) (yCam + level.height) / cellSize + 1; y++)
+			{
+				int dir = 0;
+
+				if (x * cellSize + 8 > mario.x + cellSize) dir = -1;
+				if (x * cellSize + 8 < mario.x - cellSize) dir = 1;
+
+				/*
+				SpriteTemplate st = level.getSpriteTemplate(x, y);
+
+				if (st != null)
+				{
+					//                        if (st.getType() == Sprite.KIND_SPIKY)
+					//                        {
+					//                            System.out.println("here");
+					//                        }
+
+					if (st.lastVisibleTick != tickCount - 1)
+					{
+						if (st.sprite == null || !sprites.contains(st.sprite))
+							st.spawn(this, x, y, dir);
+					}
+
+					st.lastVisibleTick = tickCount;
+				}
+				*/
+
+				if (dir != 0)
+				{
+					byte b = level.getBlock(x, y);
+					if (((Level.TILE_BEHAVIORS[b & 0xff]) & Level.BIT_ANIMATED) > 0)
+					{
+						if ((b % cellSize) / 4 == 3 && b / cellSize == 0)
+						{
+							if ((tickCount - x * 2) % 100 == 0)
+							{
+								/*
+								//                                    xCannon = x;
+								for (int i = 0; i < 8; i++)
+								{
+									addSprite(new Sparkle(x * cellSize + 8, y * cellSize + (int) (Math.random() * cellSize), (float) Math.random() * dir, 0, 0, 1, 5));
+								}
+								*/
+								addSprite(new BulletBill(this, x * cellSize + 8 + dir * 8, y * cellSize + 15, dir));
+
+								//                                    hasShotCannon = true;
+							}
+						}
+					}
+				}
+			}
+
+		for (Sprite sprite : sprites)
+			sprite.tick();
+
+		byte levelElement = level.getBlock(mario.mapX, mario.mapY);
+		
+		// TODO: Implement ladders?
+		/*
+		if (levelElement == (byte) (13 + 3 * 16) || levelElement == (byte) (13 + 5 * 16))
+		{
+			if (levelElement == (byte) (13 + 5 * 16))
+				mario.setOnTopOfLadder(true);
+			else
+				mario.setInLadderZone(true);
+		} else if (mario.isInLadderZone())
+		{
+			mario.setInLadderZone(false);
+		}
+		*/
+
+		for (Sprite sprite : sprites)
+			sprite.collideCheck();
+
+		for (Shell shell : shellsToCheck)
+		{
+			for (Sprite sprite : sprites)
+			{
+				if (sprite != shell && !shell.dead)
+				{
+					if (sprite.shellCollideCheck(shell))
+					{
+						if (mario.carried == shell && !shell.dead)
+						{
+							mario.carried = null;
+							mario.setRacoon(false);
+							//System.out.println("sprite = " + sprite);
+							shell.die();
+							//++this.killedCreaturesTotal;
+						}
+					}
+				}
+			}
+		}
+		shellsToCheck.clear();
+
+		for (Fireball fireball : fireballsToCheck)
+			for (Sprite sprite : sprites)
+				if (sprite != fireball && !fireball.dead)
+					if (sprite.fireballCollideCheck(fireball))
+						fireball.die();
+		fireballsToCheck.clear();
+
+
+		sprites.addAll(0, spritesToAdd);
+		sprites.removeAll(spritesToRemove);
+		spritesToAdd.clear();
+		spritesToRemove.clear();
+    	/*
     	// advance the world state. directly from the original physics engine.
         timeLeft--;
         if (timeLeft==0)
@@ -351,6 +527,7 @@ public class LevelScene implements SpriteContext, Cloneable
         sprites.removeAll(spritesToRemove);
         spritesToAdd.clear();
         spritesToRemove.clear();
+        */
     }
   
     public void addSprite(Sprite sprite)

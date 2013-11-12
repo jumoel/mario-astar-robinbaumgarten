@@ -31,7 +31,7 @@ public class Level implements Cloneable
     public static final int BIT_ANIMATED = 1 << 7;
 
     //private static final int FILE_HEADER = 0x271c4178;
-    public int width;
+    public int length;
     public int height;
     public int maxDiscoveredWidth = 0;
     
@@ -64,7 +64,7 @@ public class Level implements Cloneable
     
     public Level(int width, int height)
     {
-        this.width = width;
+        this.length = width;
         this.height = height;
 
         xExit = 100000;
@@ -360,7 +360,7 @@ public class Level implements Cloneable
     {
         if (x < 0) x = 0;
         if (y < 0) return 0;
-        if (x >= width) x = width - 1;
+        if (x >= length) x = length - 1;
         if (y >= height) y = height - 1;
         if ((Level.TILE_BEHAVIORS[map[x][y] & 0xff] & Level.BIT_BREAKABLE) > 0)
         {
@@ -377,7 +377,7 @@ public class Level implements Cloneable
     {
         if (x < 0) return;
         if (y < 0) return;
-        if (x >= width) return;
+        if (x >= length) return;
         if (y >= height) return;
         if ((Level.TILE_BEHAVIORS[map[x][y] & 0xff] & Level.BIT_BREAKABLE) > 0 && b == 0)
         {
@@ -394,7 +394,7 @@ public class Level implements Cloneable
     {
         if (x < 0) return;
         if (y < 0) return;
-        if (x >= width) return;
+        if (x >= length) return;
         if (y >= height) return;
         //data[x][y] = b;
     }
@@ -414,7 +414,7 @@ public class Level implements Cloneable
     {
         if (x < 0) return null;
         if (y < 0) return null;
-        if (x >= width) return null;
+        if (x >= length) return null;
         if (y >= height) return null;
         return spriteTemplates[x][y];
     }
@@ -423,12 +423,12 @@ public class Level implements Cloneable
     {
         if (x < 0) return;
         if (y < 0) return;
-        if (x >= width) return;
+        if (x >= length) return;
         if (y >= height) return;
         spriteTemplates[x][y] = spriteTemplate;
     }
 
-    public int getWidthCells() {         return width;    }
+    public int getWidthCells() {         return length;    }
 
-    public double getWidthPhys() {         return width * 16;    }
+    public double getWidthPhys() {         return length * 16;    }
 }
