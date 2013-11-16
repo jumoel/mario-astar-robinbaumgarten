@@ -7,7 +7,11 @@ package competition.cig.robinbaumgarten;
  * http://sam.zoy.org/wtfpl/COPYING for more details. */ 
 
 import ch.idsia.agents.Agent;
+import ch.idsia.agents.AgentLoader;
 import ch.idsia.benchmark.mario.environments.Environment;
+import ch.idsia.benchmark.tasks.BasicTask;
+import ch.idsia.benchmark.tasks.MarioCustomSystemOfValues;
+import ch.idsia.tools.MarioAIOptions;
 
 import competition.cig.robinbaumgarten.astar.AStarSimulator;
 import competition.cig.robinbaumgarten.astar.sprites.Mario;
@@ -128,5 +132,25 @@ public class AStarAgent implements Agent
 	@Override
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	public static void main(String[] args)
+	{
+		final MarioAIOptions marioAIOptions = new MarioAIOptions("-srf on -vis on"); // -ag " + competition.cig.robinbaumgarten.AStarAgent.class.getName());
+		//marioAIOptions.setVisualization(true);
+		marioAIOptions.setAgent(AgentLoader.getInstance().loadAgent(competition.cig.robinbaumgarten.AStarAgent.class.getName(), false));
+		//marioAIOptions.setLevelDifficulty(0);		
+
+		final BasicTask basicTask = new BasicTask(marioAIOptions);
+
+		boolean verbose = false;
+		basicTask.doEpisodes(1, verbose, 1);
+
+		final MarioCustomSystemOfValues m = new MarioCustomSystemOfValues();
+
+		System.out.println("\nEvaluationInfo: \n" + basicTask.getEnvironment().getEvaluationInfoAsString());
+		System.out.println("\nCustom : \n" + basicTask.getEnvironment().getEvaluationInfo().computeWeightedFitness(m));
+
+		System.exit(0);
 	}
 }
