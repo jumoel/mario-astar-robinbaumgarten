@@ -1,5 +1,6 @@
 package competition.cig.robinbaumgarten.astar.level;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -83,10 +84,11 @@ public class Level implements Cloneable
         //observation = new byte[width][height];
     }
 
-    public static void loadBehaviors()
+    public static void loadBehaviors(DataInputStream dis) throws IOException
     {
-        //dis.readFully(Level.TILE_BEHAVIORS);
+        dis.readFully(Level.TILE_BEHAVIORS);
     	
+    	/*
     	// This is the data from tiles.dat. Could load it from the file, but to avoid i/o problems, data is here.
     	Level.TILE_BEHAVIORS[0] = 0;
     	Level.TILE_BEHAVIORS[1] = 20;
@@ -344,6 +346,7 @@ public class Level implements Cloneable
     	Level.TILE_BEHAVIORS[253] = 0;
     	Level.TILE_BEHAVIORS[254] = 0;
     	Level.TILE_BEHAVIORS[255] = 0;
+    	*/
     }
 
     public static void saveBehaviors(DataOutputStream dos) throws IOException

@@ -1,9 +1,13 @@
 package competition.cig.robinbaumgarten.astar;
 
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import ch.idsia.benchmark.mario.engine.GeneralizerLevelScene;
 import ch.idsia.benchmark.mario.engine.GlobalOptions;
+//import ch.idsia.benchmark.mario.engine.LevelScene;
 
 import competition.cig.robinbaumgarten.astar.level.Level;
 import competition.cig.robinbaumgarten.astar.level.SpriteTemplate;
@@ -27,6 +31,10 @@ public class LevelScene implements SpriteContext, Cloneable
     private List<Sprite> sprites = new ArrayList<Sprite>();
     private List<Sprite> spritesToAdd = new ArrayList<Sprite>();
     private List<Sprite> spritesToRemove = new ArrayList<Sprite>();
+    
+    public static final int BLOCK_EMPTY = 0;
+    public static final int BLOCK_SOMETHING = 1;
+    public static final int BLOCK_KICKED_HIDDEN = 4;
     
     private static int cellSize = ch.idsia.benchmark.mario.engine.LevelScene.cellSize;
 
@@ -95,7 +103,7 @@ public class LevelScene implements SpriteContext, Cloneable
         boolean gapAtLast = true;
         boolean gapAtSecondLast = true;
         int lastEventX = 0;
-        int[] heights = new int[20];
+        int[] heights = new int[GlobalOptions.receptiveFieldWidth];
         for(int i = 0; i < heights.length; i++)
         	heights[i] = 0;
         
@@ -114,11 +122,15 @@ public class LevelScene implements SpriteContext, Cloneable
 
             		byte datum = data[obsX][obsY];
 
-            		if (datum != 0 && datum != -10 && datum != 1 && obsX > lastEventX)
+            		
+            		if (datum != BLOCK_EMPTY &&
+            				datum != GeneralizerLevelScene.BORDER_CANNOT_PASS_THROUGH &&
+            				datum != BLOCK_SOMETHING &&
+            				obsX > lastEventX)
             		{
             			lastEventX = obsX;
             		}
-            		if (datum != 0 && datum != 1)
+            		if (datum != BLOCK_EMPTY && datum != BLOCK_SOMETHING)
             		{
             			if (heights[obsX] == 0)
             			{
@@ -129,7 +141,7 @@ public class LevelScene implements SpriteContext, Cloneable
             		// cannon detection: if there's a one-block long hill, it's a cannon!
             		// i think this is not required anymore, because we get the cannon data straight from the API.
             		if (x == MarioXInMap + HalfObsWidth - 3 &&
-            				datum != 0 && y > 5)
+            				datum != BLOCK_EMPTY && y > 5)
             		{
 
             			if (gapBorderMinusTwoHeight == 0)
@@ -137,7 +149,7 @@ public class LevelScene implements SpriteContext, Cloneable
             		}
 
             		if (x == MarioXInMap + HalfObsWidth - 2 &&
-            				datum != 0 && y > 5)
+            				datum != BLOCK_EMPTY && y > 5)
             		{
             			if (gapBorderMinusOneHeight == 0)
             				gapBorderMinusOneHeight = y;
@@ -145,7 +157,7 @@ public class LevelScene implements SpriteContext, Cloneable
             		}
 
             		if (x == MarioXInMap + HalfObsWidth - 1 &&
-            				datum != 0 && y > 5)
+            				datum != BLOCK_EMPTY && y > 5)
             		{
 
             			if (gapBorderHeight == 0)
@@ -153,7 +165,7 @@ public class LevelScene implements SpriteContext, Cloneable
             			gapAtLast = false;
             		}
 
-            		if (datum != 1 && level.getBlock(x, y) != 14) 
+            		if (datum != BLOCK_SOMETHING && level.getBlock(x, y) != GeneralizerLevelScene.CANNON_MUZZLE) 
             			level.setBlock(x, y, datum);
             	}
             	catch (ArrayIndexOutOfBoundsException e) {
@@ -184,14 +196,14 @@ public class LevelScene implements SpriteContext, Cloneable
         	{
             	for(int j = 0; j < 15; j++)
             	{
-            		level.setBlock(MarioXInMap + HalfObsWidth + i, j, (byte) 0);
+            		level.setBlock(MarioXInMap + HalfObsWidth + i, j, (byte) BLOCK_EMPTY);
             	}
             	level.isGap[MarioXInMap + HalfObsWidth + i] = true;
             	level.gapHeight[MarioXInMap + HalfObsWidth + i] = gapBorderMinusOneHeight;
         	}
         	for(int j = gapBorderMinusOneHeight; j < 16; j++)
         	{
-        		level.setBlock(MarioXInMap + HalfObsWidth + holeWidth, gapBorderMinusOneHeight, (byte) 4);
+        		level.setBlock(MarioXInMap + HalfObsWidth + holeWidth, gapBorderMinusOneHeight, (byte) BLOCK_KICKED_HIDDEN);
         	}
         	return true;
         }
@@ -201,8 +213,16 @@ public class LevelScene implements SpriteContext, Cloneable
    
     public void init()
     {
-        Level.loadBehaviors();
-        
+    	try
+        {
+            Level.loadBehaviors(new DataInputStream(ch.idsia.benchmark.mario.engine.LevelScene.class.getResourceAsStream("resources/tiles.dat")));
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+            System.exit(0);
+        }
+    	
         Sprite.spriteContext = this;
         sprites.clear();
 

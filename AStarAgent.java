@@ -139,7 +139,8 @@ public class AStarAgent implements Agent
 		final MarioAIOptions marioAIOptions = new MarioAIOptions("-srf on -vis on"); // -ag " + competition.cig.robinbaumgarten.AStarAgent.class.getName());
 		//marioAIOptions.setVisualization(true);
 		marioAIOptions.setAgent(AgentLoader.getInstance().loadAgent(competition.cig.robinbaumgarten.AStarAgent.class.getName(), false));
-		//marioAIOptions.setLevelDifficulty(0);		
+		marioAIOptions.setLevelDifficulty(0);
+		marioAIOptions.setFlatLevel(true);
 
 		final BasicTask basicTask = new BasicTask(marioAIOptions);
 
