@@ -2,7 +2,7 @@
 
 A* Mario AI v1.1 as used by me (Robin Baumgarten) for the CIG 2009 Mario AI competition.
 
-Homepage: http://www.doc.ic.ac.uk/~rb1006/projects:marioai
+Homepage: http://www.doc.ic.ac.uk/~rb1006/projects:marioai (archive: https://web.archive.org/web/20090808193823/http://www.doc.ic.ac.uk/~rb1006/projects:marioai)
 
 Overview:
 - AStarAgent.java: The entry point of the source-code, called by the API. It calls the optimize() function in AStarSimulator.java
